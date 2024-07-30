@@ -2,6 +2,7 @@ from utils import *
 import time
 import openpyxl
 from openpyxl import Workbook
+import json
 
 
 product_research_url = "https://www.sellersprite.com/v2/product-research"
@@ -72,8 +73,45 @@ def main():
     
     for box in content_boxes:
         process_content_boxes(box)
+    # find next page
+    while True:
+
+        try:
+            # 等待并找到包含 '下一页' 的 <a> 标签
+            next_page_link = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, "//li[@class='page-item']/a[span[contains(text(), '下一页')]]"))
+            )
+            next_page_link.click()
+            print("点击了下一页链接")
+            go_to_next_page()
+            
+        except Exception as e:
+            print(f"遍历结束")
+            with open('output.json', 'w', encoding='utf-8') as json_file:
+                json.dump(ALL_STORES, json_file, ensure_ascii=False, indent=4)
+            break
     driver.quit()
 
+
+def go_to_next_page():
+    global driver
+    # 等待特定的 div 出现
+    WebDriverWait(driver, 300).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'div.container.p-0.pt-3')))
+    print("特定的 div 已出现，继续执行后续操作")
+
+    time.sleep(3)
+    driver.switch_to.window(driver.window_handles[0])
+    
+    #step3 get all boxes
+    WebDriverWait(driver, 300).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'div.d-flex.flex-wrap.bg-white.pl-4.pr-4.pb-4.mb-4.position-relative')))
+    container_div = driver.find_element(By.CSS_SELECTOR, 'div.d-flex.flex-wrap.bg-white.pl-4.pr-4.pb-4.mb-4.position-relative')
+    content_boxes = container_div.find_elements(By.CSS_SELECTOR, 'div.content-grid-product-box')
+    
+    for box in content_boxes:
+        process_content_boxes(box)
+    
+    
+    pass
 
 def wait_for_user_login():
     global driver
@@ -102,6 +140,8 @@ def process_content_boxes(box):
     global driver
     actions = ActionChains(driver)
     seller_id = None
+    # print("处理商品窗口")
+    # return 
     try:
         # 悬停到box上
         actions.move_to_element(box).perform()
