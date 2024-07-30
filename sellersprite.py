@@ -254,7 +254,7 @@ def tracking_store(store_id):
     time.sleep(1)
 
     # 具体的数据处理
-    # process_store_tracking_page(store_id)
+    process_store_tracking_page(store_id)
 
     # 回到store-tracking页面
     driver.get(store_tracking_url)
@@ -375,7 +375,7 @@ def get_bsr_data(store_id):
     bsr_data = []
     try:
         # 等待具有特定ID的table元素出现
-        table = WebDriverWait(driver, 10).until(
+        table = WebDriverWait(driver, 5).until(
             EC.presence_of_element_located((By.ID, "table-condition-search"))
         )
         print("找到了ID为'table-condition-search'的表格")
@@ -392,7 +392,9 @@ def get_bsr_data(store_id):
             tds = tr.find_elements(By.TAG_NAME, 'td')
             if len(tds) <= 3:
                 continue
-            
+            # 获取第2个子td中的商品信息
+            product = tds[1].find_element(By.CLASS_NAME, 'text-primary')
+            product_id = product.text.strip()
             # 获取第3个子td中的<button>元素
             button = tds[2].find_element(By.TAG_NAME, 'button')
             data = button.text.strip()  # 获取包裹在<button>里面的data
@@ -400,7 +402,7 @@ def get_bsr_data(store_id):
             # 对data进行进一步处理
             if data == '-':
                 continue
-            bsr_data.append(data)
+            bsr_data.append(product_id)
     except:
         print("找到tbody中的tr失败")
     
