@@ -3,16 +3,34 @@ import time
 import openpyxl
 from openpyxl import Workbook
 import json
+import os
+import sys
+import logging
+
 
 
 product_research_url = "https://www.sellersprite.com/v2/product-research"
 store_tracking_url = "https://www.sellersprite.com/v2/store-tracking"
 driver = get_driver_from_local()
 ALL_STORES = {}
-EXCEL_FILE_PATH = "data.xlsx"
 
+desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
+EXCEL_FILE_PATH = os.path.join(desktop_path, "data.xlsx")
 
-# sleep 5 seconds to see the page
+log_file_path = os.path.join(desktop_path, "sellersprite.log")
+# 配置日志记录
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(log_file_path),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+
+# 重定向标准输出和标准错误到日志文件
+sys.stdout = open(log_file_path, 'a')
+sys.stderr = open(log_file_path, 'a')
 
 
 
