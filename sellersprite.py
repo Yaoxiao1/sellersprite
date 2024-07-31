@@ -409,9 +409,8 @@ def get_bsr_data(store_id):
     while True:
         try:
             # 等待并找到包含 '下一页' 的 <a> 标签
-            # todo update the xpath for next page
             next_page_link = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.XPATH, "//li[@class='page-item']/a[span[contains(text(), '下一页')]]"))
+                EC.element_to_be_clickable((By.XPATH, "//a[@class='page-link' and @aria-label='Next']"))
             )
             next_page_link.click()
             print("bsr点击了下一页链接")
