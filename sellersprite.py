@@ -424,8 +424,61 @@ def get_bsr_data(store_id):
     except:
         print("找到tbody中的tr失败")
     
+    while True:
+        try:
+            # 等待并找到包含 '下一页' 的 <a> 标签
+            next_page_link = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.XPATH, "//a[@class='page-link' and @aria-label='Next']"))
+            )
+            next_page_link.click()
+            print("bsr点击了下一页链接")
+            nxt_data = get_bsr_next_page()
+            bsr_data.extend(nxt_data)
+            
+        except Exception as e:
+            print(f"bsr遍历结束")
+            break
+
     return bsr_data
           
+
+def get_bsr_next_page():
+    global driver
+    table = None
+    bsr_data = []
+    try:
+        # 等待具有特定ID的table元素出现
+        table = WebDriverWait(driver, 5).until(
+            EC.presence_of_element_located((By.ID, "table-condition-search"))
+        )
+        print("找到了ID为'table-condition-search'的表格")
+    except Exception as e:
+        print(f"找到ID为'table-condition-search'的表格失败")
+        return bsr_data
+    
+    if table is None:
+        return bsr_data
+    # 找到table下面的tbody中的tr
+    try:
+        trs = table.find_elements(By.TAG_NAME, 'tr')
+        for tr in trs:
+            tds = tr.find_elements(By.TAG_NAME, 'td')
+            if len(tds) <= 3:
+                continue
+            # 获取第2个子td中的商品信息
+            product = tds[1].find_element(By.CLASS_NAME, 'text-primary')
+            product_id = product.text.strip()
+            # 获取第3个子td中的<button>元素
+            button = tds[2].find_element(By.TAG_NAME, 'button')
+            data = button.text.strip()  # 获取包裹在<button>里面的data
+            
+            # 对data进行进一步处理
+            if data == '-':
+                continue
+            bsr_data.append(product_id)
+    except:
+        print("找到tbody中的tr失败")
+    return bsr_data
 
 
 def append_data_to_excel(data_7_days, data_15_days):
